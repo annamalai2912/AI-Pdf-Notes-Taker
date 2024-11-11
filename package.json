@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.15.3",
+    "@clerk/nextjs": "^6.3.1",
     "@google/generative-ai": "^0.21.0",
     "@langchain/community": "^0.3.12",
     "@langchain/core": "^0.3.17",
