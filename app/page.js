@@ -1,100 +1,135 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { UserButton, useUser } from "@clerk/nextjs"; // Import UserButton
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useEffect } from "react";
+import { motion } from "framer-motion"; // Import for animations
+import logo from "@/public/logo.svg";
+import { usePathname, useRouter } from "next/navigation"; // Import useRouter for navigation
+import Link from "next/link";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const { user } = useUser();
+  const router = useRouter();
+  const createUser = useMutation(api.user.createUser);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    if (user) {
+      checkUser();
+    }
+  }, [user]);
+
+  const checkUser = async () => {
+    const result = await createUser({
+      email: user?.primaryEmailAddress?.emailAddress,
+      userName: user?.fullName,
+      imageUrl: user?.imageUrl,
+    });
+    console.log(result);
+  };
+
+  const handleGetStarted = () => {
+    if (user) {
+      // If the user is signed in, navigate to their workspace
+      router.push("/dashboard");
+    } else {
+      // If not signed in, navigate to the sign-in page
+      router.push("/sign-in");
+    }
+  };
+
+  const path = usePathname();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-blue-50 flex flex-col items-center text-gray-800">
+      {/* Header Section */}
+      <header className="flex justify-between items-center w-full max-w-screen-xl px-8 py-4 animate-fadeIn">
+        <div className="flex items-center space-x-3">
+          <motion.div whileHover={{ scale: 1.1 }}>
+            <Image src={logo} alt="Logo" width={40} height={40} />
+          </motion.div>
+          <span className="text-2xl font-semibold">AI-Pdf-Notes</span>
+        </div>
+        <nav className="flex items-center space-x-8 text-gray-700">
+          {["Features", "Solution", "Testimonials", "Blog"].map((item) => (
+            <a key={item} href="#" className="hover:text-gray-900 transition duration-300">
+              {item}
+            </a>
+          ))}
+          <Button
+            onClick={handleGetStarted}
+            className={`ml-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full px-4 py-2 shadow-lg hover:shadow-xl transition duration-300 ${
+              path === "/dashboard/sign-up" && "bg-slate-100"
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Get Started
+          </Button>
+          {/* UserButton for Clerk Authentication */}
+          <div className="ml-4">
+            {user ? (
+              <UserButton />
+            ) : (
+              <Link href="/sign-in">
+                <Button className="bg-gray-700 text-white rounded-full px-4 py-2 shadow-md hover:shadow-lg transition duration-300">
+                  Sign In
+                </Button>
+              </Link>
+            )}
+          </div>
+        </nav>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex flex-col items-center justify-center flex-grow text-center px-6 mt-12 space-y-8">
+        <motion.h1
+          className="text-5xl font-bold text-gray-900 mb-4"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          Simplify <span className="text-red-500">PDF</span> <span className="text-blue-500">Note-Taking</span>
+          <br />
+          with AI-Powered
+        </motion.h1>
+        <p className="text-lg text-gray-600 mb-8 max-w-lg">
+          Elevate your note-taking experience with our AI-powered PDF app. Seamlessly extract key insights, summaries,
+          and annotations from any PDF with just a few clicks.
+        </p>
+        <div className="flex space-x-4">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button className="bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition duration-300">
+              Get Started
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button className="bg-gray-200 text-black rounded-full px-6 py-3 shadow-md hover:shadow-lg transition duration-300">
+              Learn More
+            </Button>
+          </motion.div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer Features Section */}
+      <footer className="flex justify-center items-center w-full py-6 bg-white border-t border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center px-4 md:px-0">
+          {[
+            { title: "Lowest Price", description: "Affordable options for everyone." },
+            { title: "Fastest on the Market", description: "Lightning-fast results." },
+            { title: "Most Loved", description: "Join our happy community." }
+          ].map((feature) => (
+            <motion.div
+              key={feature.title}
+              className="p-4 bg-gray-50 rounded-lg shadow-sm transition duration-300 hover:bg-gray-100"
+              whileHover={{ y: -3, scale: 1.01 }}
+            >
+              <h3 className="font-semibold text-gray-800 text-base">{feature.title}</h3>
+              <p className="text-gray-500 text-sm">{feature.description}</p>
+            </motion.div>
+          ))}
+        </div>
       </footer>
     </div>
   );
